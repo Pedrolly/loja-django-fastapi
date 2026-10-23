@@ -214,4 +214,4 @@ Ideas for future versions:
  Deployment with cloud image storage
 Author
 
-Built by YOUR NAME · LinkedIn · GitHub
+Built by Pedro Vieira  · https://www.linkedin.com/in/pedroguimaraesvieira/ · https://github.com/Pedrolly
