@@ -88,6 +88,12 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 WHITENOISE_USE_FINDERS = DEBUG
 WHITENOISE_AUTOREFRESH = DEBUG
 
+# Uploads (imagens dos produtos)
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
+MAX_IMAGE_BYTES = 2 * 1024 * 1024   # 2 MB por imagem
+IMAGE_MAX_DIMENSION = 1600          # lado máximo em pixels (a API reduz se passar)
+
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Configurações do JWT usado pela API FastAPI

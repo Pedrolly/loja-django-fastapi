@@ -48,6 +48,7 @@ class ProductOut(ORMModel):
     stock: int
     is_active: bool
     category: CategoryOut
+    image_url: str | None = None
 
 
 class ProductIn(BaseModel):

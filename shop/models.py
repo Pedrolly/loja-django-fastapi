@@ -1,8 +1,26 @@
+import os
+import uuid
+from decimal import Decimal
+
 from decimal import Decimal
 
 from django.conf import settings
 from django.db import models
+from django.conf import settings
+from django.core.exceptions import ValidationError
+from django.db import models
 
+
+def product_image_path(instance, filename):
+    """Nome aleatório: evita colisões, cache velho e nomes adivinháveis."""
+    ext = os.path.splitext(filename)[1].lower() or ".jpg"
+    return f"products/{uuid.uuid4().hex}{ext}"
+
+
+def validate_image_size(file):
+    if file.size > settings.MAX_IMAGE_BYTES:
+        limit_mb = settings.MAX_IMAGE_BYTES // (1024 * 1024)
+        raise ValidationError(f"A imagem deve ter no máximo {limit_mb} MB.")
 
 class Category(models.Model):
     name = models.CharField("nome", max_length=100, unique=True)
