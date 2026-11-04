@@ -213,13 +213,88 @@ Ideas for future versions:
  Web storefront consuming the API
  Deployment with cloud image storage
 Author
-Capturas de tela
+### 🗂️ Categorias
 
-Painel administrativo (Django Admin)
-![Painel administrativo do Django com categorias, produtos e pedidos](prints/loja.png)
+**O que é:** as seções em que os produtos são organizados (por exemplo, "Ração", "Brinquedos", "Higiene").
 
-Painel para adição de Grupos
-![Painel administrativo para adição de grupos](prints/adicionar_grupos.png)
+**No painel:**
+- A lista mostra **nome** e **slug**, em ordem alfabética.
+- O **slug** (identificador para URL) é preenchido automaticamente enquanto você digita o nome.
+- Há um campo de **busca por nome**.
+
+![Painel administrativo do Django](prints/loja.png)
+
+**Regras:**
+- Nome e slug são únicos.
+- Uma categoria que ainda tem produtos **não pode ser excluída**. É preciso mover ou remover os produtos antes.
+
+**Relação com a API:**
+- `GET /api/categories`: lista as categorias (público).
+- `POST /api/categories`: cria categorias (somente administrador).
+- `GET /api/products?category=...`: filtra o catálogo por categoria.
+
+---
+
+### 📦 Produtos
+
+**O que é:** o catálogo da loja. Aqui se controla o que está à venda, por quanto e em que quantidade.
+
+**No painel:**
+- A lista mostra **nome, categoria, preço, estoque e ativo**.
+- **Edição direta na lista:** preço, estoque e ativo podem ser alterados sem abrir cada produto. Basta editar os valores e clicar em *Salvar* no fim da página.
+- **Filtros laterais** por categoria e por produtos ativos/inativos.
+- **Busca** por nome e por descrição.
+- O **slug** é preenchido automaticamente a partir do nome.
+
+**Campos:** categoria, nome, descrição, slug (único), preço (duas casas decimais), estoque, ativo e data de criação (automática, com os mais recentes primeiro).
+
+**Regras:**
+- O estoque nunca fica negativo.
+- Desmarcar **Ativo** tira o produto de venda sem apagá-lo. Pedidos com produtos inativos são recusados.
+- Produtos que já foram vendidos **não podem ser excluídos**, para preservar o histórico dos pedidos.
+- O estoque é baixado quando um pedido é criado pela API e devolvido quando ele é cancelado.
+
+**Relação com a API:**
+- `GET /api/products` e `GET /api/products/{slug}`: consulta pública, com busca (`?q=`), filtro por categoria e paginação (`limit` e `offset`).
+- `POST /api/products` e `PATCH /api/products/{id}`: criação e edição (somente administrador).
+
+![Painel administrativo do Django](prints/adicionar_produtos.png)
+
+### 🧾 Pedidos
+
+**O que é:** o registro das compras feitas pelos clientes pela API. É onde a equipe acompanha cada pedido.
+
+**No painel:**
+- A lista mostra **número, cliente, status, total e data**, com os mais recentes primeiro.
+- **Filtro lateral por status.**
+- Ao abrir um pedido, os **itens aparecem em uma tabela** dentro dele, com produto, quantidade e preço unitário.
+- O **preço unitário é somente leitura**: ele é gravado no momento da compra, então mudar o preço do produto depois não altera pedidos antigos.
+- O **total** é calculado automaticamente pela soma dos subtotais.
 
 
-Built by Pedro Vieira  · https://www.linkedin.com/in/pedroguimaraesvieira/ · https://github.com/Pedrolly
+![Painel administrativo do Django](prints/adicionar_pedidos.png)
+
+**Fluxo de status:**
+
+```
+Pendente ──► Pago ──► Enviado
+   │          │
+   └──────────┴──► Cancelado
+```
+
+| Status | Significado |
+|--------|-------------|
+| Pendente | Pedido criado, aguardando pagamento |
+| Pago | Pagamento confirmado |
+| Enviado | Pedido despachado (estado final) |
+| Cancelado | Pedido cancelado, com estoque devolvido (estado final) |
+
+**Como cada ação funciona pela API:**
+- `POST /api/orders`: o cliente cria o pedido. O estoque é verificado e baixado dentro de uma transação, com bloqueio das linhas (`select_for_update`), então dois pedidos simultâneos nunca vendem a mesma unidade.
+- `POST /api/orders/{id}/cancel`: o cliente cancela o próprio pedido, apenas se estiver pendente.
+- `PATCH /api/orders/{id}/status`: o administrador avança o pedido para pago, enviado ou cancelado. Transições inválidas retornam erro 409.
+- `GET /api/orders/admin/all`: o administrador lista todos os pedidos, com filtro por status e paginação.
+- `GET /api/orders` e `GET /api/orders/{id}`: o cliente vê apenas os próprios pedidos.
+
+> ⚠️ **Atenção:** para mudar o status de um pedido, use `PATCH /api/orders/{id}/status`. Ela valida a transição e devolve o estoque em cancelamentos. O campo de status no painel é editável, mas alterá-lo ali só troca o valor, sem aplicar essas regras nem mexer no estoque.
+
