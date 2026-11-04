@@ -213,5 +213,13 @@ Ideas for future versions:
  Web storefront consuming the API
  Deployment with cloud image storage
 Author
+Capturas de tela
+
+Painel administrativo (Django Admin)
+![Painel administrativo do Django com categorias, produtos e pedidos](prints/loja.png)
+
+Painel para adição de Grupos
+![Painel administrativo para adição de grupos](prints/adicionar_grupos.png)
+
 
 Built by Pedro Vieira  · https://www.linkedin.com/in/pedroguimaraesvieira/ · https://github.com/Pedrolly
